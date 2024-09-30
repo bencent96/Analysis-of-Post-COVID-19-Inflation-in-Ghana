@@ -1,0 +1,130 @@
+---
+title: "Analysis of Post-COVID-19 Inflation in Ghana"
+author: "Benjamin Ekow Attabra"
+date: '`r Sys.Date()`'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Introduction
+
+The COVID-19 pandemic led to severe economic disruptions worldwide, and Ghana was no exception. One of the major consequences of the pandemic has been a significant rise in inflation, driven by various factors such as disruptions in the supply chain, changes in consumer behavior, and rising global food and fuel prices.
+
+This project analyzes post-COVID-19 inflation in Ghana by investigating how a key economic factor, specifically **GDP growth**, has been influenced by inflation since 2020. We will use both exploratory data analysis and statistical modeling to draw conclusions.
+
+# Data Preparation
+
+## Loading the Data
+
+We start by loading two datasets: one with inflation rate data and GDP growth.
+
+```{r load-packages, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+# Load the datasets
+economic_data <- read_csv("Ghana Economic Data.csv")
+inflation_data <- read_csv("Ghana_inflation_rate.csv")
+
+# Inspect the first few rows
+head(economic_data)
+head(inflation_data)
+```
+## Data Cleaning and Merging
+
+We clean the data by removing missing values and merging the datasets based on a common key, such as Date.
+```{r}
+# Clean the inflation dataset
+inflation_data_clean <- na.omit(inflation_data)  # Remove missing values
+
+# Merge the inflation data with the economic data based on 'Date'
+combined_data <- left_join(inflation_data_clean, economic_data, by = "Year")
+
+# Inspect the combined dataset
+head(combined_data)
+summary(combined_data)
+```
+## Exploratory Data Analysis (EDA)
+
+We begin by exploring the inflation trends and their relationship with GDP growths.
+Inflation Rate Trend
+```{r}
+# Plot the inflation rate over time
+ggplot(combined_data, aes(x = Year, y = rate)) +
+  geom_line(color = "blue") +
+  theme_minimal() +
+  labs(title = "Post-COVID-19 Inflation Trends in Ghana (1965-2023)",
+       x = "Year",
+       y = "Inflation Rate (%)")
+```
+## Relationship Between Inflation and Key Variables
+
+Let’s explore the relationship between inflation and GDP growth
+```{r}
+# Plot relationship between GDP growth and inflation
+ggplot(combined_data, aes(x = GDP_growth, y = rate)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  theme_minimal() +
+  labs(title = "Impact of GDP Growth on Inflation",
+       x = "GDP Growth (%)",
+       y = "Inflation Rate (%)")
+```
+
+# Hypothesis Testing and Statistical Analysis
+
+To test the significance of GDP growth on post-COVID-19 inflation, we perform hypothesis testing.
+
+## Hypotheses
+
+  - **Null hypothesis (H0):**There is no significant relationship between GDP growth and inflation rates.
+  \[
+  H_0: \mu = 0
+  \]
+- **Alternative hypothesis (H1):**There is a significant relationship between GDP growth and inflation rates.
+  \[
+  H_1: \mu \neq 0
+  \]
+
+ 
+ 
+We will perform a linear regression analysis to test this hypothesis.
+
+## Regression Model
+```{r}
+# Fit a linear regression model
+model <- lm(rate ~ GDP_growth, data = combined_data)
+
+# Display the model summary
+summary(model)
+```
+# Hypothesis Testing Results
+```{r}
+# Extract the p-value for GDP_growth
+gdp_p_value <- summary(model)$coefficients["GDP_growth", "Pr(>|t|)"]
+
+# Report the decision based on the p-value
+if (gdp_p_value < 0.05) {
+  decision <- "reject"
+  conclusion <- "significant"
+} else {
+  decision <- "fail to reject"
+  conclusion <- "no significant"
+}
+
+# Output the conclusion
+cat("The p-value for GDP growth is ", gdp_p_value, ". Therefore,\nwe", decision, 
+    " the null hypothesis and conclude that there is", conclusion, 
+    " relationship \nbetween GDP growth and inflation post-COVID-19.")
+```
+# Conclusion
+
+This analysis of post-COVID-19 inflation in Ghana demonstrates how GDP growth has influenced inflation. Based on our hypothesis testing, We found insufficient evidence to support a significant relationship between GDP growth and inflation in Ghana. The insights from this analysis could be valuable for policymakers as they craft strategies for economic recovery.
+
+# References
+
+    World Bank. "Ghana Economic Outlook."
+    IMF. "Post-COVID-19 Recovery and Inflation Reports."
+
